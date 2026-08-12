@@ -15,6 +15,12 @@ testable group of REST endpoints.
 > between minor versions, etc.) when you first build it. Start with
 > `mvn -q compile` and work through anything it reports.
 
+> **Pentest training**: see [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md)
+> for a set of concrete, reproducible attack scenarios (rate-limit bypass,
+> Digest replay, mTLS trust escalation, token-exchange audience confusion,
+> federated-identity impersonation, UMA authorization bypass) derived from
+> this codebase, each with root cause and remediation notes.
+
 ## Chapter -> endpoint map
 
 | Chapter | Topic | Base path |

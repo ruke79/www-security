@@ -23,3 +23,7 @@ REST 엔드포인트 그룹으로 구현했습니다.
 
 자세한 실행 방법과 챕터별 엔드포인트 매핑은 [해당 프로젝트의
 README](advancedapisecuritydemo/README.md)를 참고하세요.
+
+모의 해킹 실습용으로 정리한 취약점 시나리오(재현 절차, 근본 원인, 대응 방안)는
+[VULNERABILITY-SCENARIOS.md](advancedapisecuritydemo/VULNERABILITY-SCENARIOS.md)를
+참고하세요.
