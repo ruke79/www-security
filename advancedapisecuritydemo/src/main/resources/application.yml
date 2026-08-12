@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: advanced-api-security-demo
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    com.example.apisecurity: DEBUG
+
+# ---------------------------------------------------------------------------
+# Application-specific settings used across chapter modules.
+# ---------------------------------------------------------------------------
+app:
+  # Issuer used for every JWT minted in this app (Authorization Server + the
+  # manually-minted tokens in ch5 / ch8 / ch10), so that a single JwtDecoder
+  # can validate all of them (Chapter 7/9 "OAuth 2.0 core / profiles").
+  issuer-uri: http://localhost:8080
+
+  # Chapter 4 - Mutual Authentication with TLS.
+  # A *second*, dedicated Tomcat connector is opened on this port, configured
+  # to request (but not force, at the TLS layer) a client certificate. The
+  # actual enforcement ("you MUST present a trusted client certificate") is
+  # done by Spring Security's x509() filter chain on /api/ch4/**.
+  mtls:
+    enabled: true
+    port: 8443
+    keystore:
+      path: certs/server-keystore.p12
+      password: changeit
+      type: PKCS12
+    truststore:
+      path: certs/server-truststore.p12
+      password: changeit
+      type: PKCS12
+
+  # Chapter 2 - Security by Design: simple in-memory rate limiter (DoS control).
+  rate-limit:
+    capacity: 20
+    refill-per-second: 5
