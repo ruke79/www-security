@@ -1,0 +1,15 @@
+# Maven build output
+target/
+
+# Generated TLS key material (Chapter 4) - produced by certs/generate-certs.sh
+certs/*.p12
+certs/*.pem
+certs/*.der
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
