@@ -65,13 +65,13 @@ public class MtlsSecurityConfig {
 
             Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
             protocol.setSSLEnabled(true);
-            // "optional" (not "required"): let the TLS handshake succeed even
-            // without a client cert, so Spring Security can produce a proper
-            // HTTP 401/403 instead of the connection being reset outright.
-            protocol.setClientAuth("optional");
 
             SSLHostConfig sslHostConfig = new SSLHostConfig();
             sslHostConfig.setSslProtocol("TLS");
+            // "optional" (not "required"): let the TLS handshake succeed even
+            // without a client cert, so Spring Security can produce a proper
+            // HTTP 401/403 instead of the connection being reset outright.
+            sslHostConfig.setCertificateVerification("optional");
 
             SSLHostConfigCertificate certificate =
                     new SSLHostConfigCertificate(sslHostConfig, SSLHostConfigCertificate.Type.RSA);
