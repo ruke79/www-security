@@ -1,5 +1,10 @@
 server:
-  port: 18080
+  # Overridable at launch to avoid port clashes, e.g.
+  #   APP_PORT=29080 mvn spring-boot:run
+  #   mvn spring-boot:run -Dspring-boot.run.arguments=--app.port=29080
+  # The issuer-uri below tracks the same value, so JWT iss / DPoP htu / the
+  # ch11 howToUse command all stay consistent when you change the port.
+  port: ${APP_PORT:19080}
 
 spring:
   application:
@@ -18,7 +23,7 @@ app:
   # Issuer used for every JWT minted in this app (Authorization Server + the
   # manually-minted tokens in ch5 / ch8 / ch10), so that a single JwtDecoder
   # can validate all of them (Chapter 7/9 "OAuth 2.0 core / profiles").
-  issuer-uri: http://localhost:18080
+  issuer-uri: http://localhost:${APP_PORT:19080}
 
   # Chapter 4 - Mutual Authentication with TLS.
   # A *second*, dedicated Tomcat connector is opened on this port, configured

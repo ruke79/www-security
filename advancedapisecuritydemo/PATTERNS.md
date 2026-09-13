@@ -6,7 +6,7 @@
 구성됩니다.
 
 > 실행 전 앱을 먼저 띄우세요. (Chapter 4/패턴 1의 mTLS만 8443 포트 + 인증서가
-> 필요하고, 나머지는 18080 평문 HTTP로 됩니다.)
+> 필요하고, 나머지는 19080 평문 HTTP로 됩니다.)
 >
 > ```bash
 > # 패턴 1(mTLS) 실습까지 하려면: ./certs/generate-certs.sh 를 먼저 실행
@@ -71,17 +71,17 @@ access token 발급.
 
 ```bash
 # 1. 외부 IdP("Foo Inc.")가 서명한 assertion 획득 (SAML assertion에 대응)
-ASSERTION=$(curl -s "http://localhost:18080/api/ch11/external-idp/assertion?user=alice@foo-inc.example" \
+ASSERTION=$(curl -s "http://localhost:19080/api/ch11/external-idp/assertion?user=alice@foo-inc.example" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['assertion'])")
 
 # 2. jwt-bearer grant로 우리 인가 서버의 access token 교환
-TOKEN=$(curl -s -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:18080/oauth2/token \
+TOKEN=$(curl -s -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:19080/oauth2/token \
   -d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer \
   -d assertion="$ASSERTION" -d scope=ch11.read \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 # 3. 교환한 토큰으로 백엔드 API 접근
-curl -H "Authorization: Bearer $TOKEN" http://localhost:18080/api/ch11/resource
+curl -H "Authorization: Bearer $TOKEN" http://localhost:19080/api/ch11/resource
 ```
 
 **관찰 포인트**: 사용자 자격증명이 웹앱에 직접 전달되지 않는다 — IdP가 서명한
@@ -115,13 +115,13 @@ IWA로 바뀌고 나머지 흐름(SAML → access token 교환)은 동일하다.
 
 ```bash
 # 외부 파트너사 사용자 신원으로 assertion 발급 → 우리 인가 서버가 신뢰해 토큰 발급
-ASSERTION=$(curl -s "http://localhost:18080/api/ch11/external-idp/assertion?user=bob@partner.example" \
+ASSERTION=$(curl -s "http://localhost:19080/api/ch11/external-idp/assertion?user=bob@partner.example" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['assertion'])")
-TOKEN=$(curl -s -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:18080/oauth2/token \
+TOKEN=$(curl -s -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:19080/oauth2/token \
   -d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer \
   -d assertion="$ASSERTION" -d scope=ch11.read \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
-curl -H "Authorization: Bearer $TOKEN" http://localhost:18080/api/ch11/resource
+curl -H "Authorization: Bearer $TOKEN" http://localhost:19080/api/ch11/resource
 ```
 
 > ⚠️ 이 흐름의 보안 함정(외부 IdP assertion을 임의 발급 + audience 미검증으로
@@ -141,12 +141,12 @@ access token으로 교환하는 jwt-bearer grant는 `ch11`이 담당한다.
 
 ```bash
 # 1. OIDC ID token 발급 (인증된 사용자 신원의 assertion)
-IDT=$(curl -s -X POST http://localhost:18080/api/ch12/id-token/issue -H 'Content-Type: application/json' \
+IDT=$(curl -s -X POST http://localhost:19080/api/ch12/id-token/issue -H 'Content-Type: application/json' \
   -d '{"subject":"alice@foo.com","clientId":"demo-client","nonce":"n-123"}' \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['id_token'])")
 
 # 2. ID token 검증 (signature + iss + aud + nonce)
-curl -s -X POST http://localhost:18080/api/ch12/id-token/validate -H 'Content-Type: application/json' \
+curl -s -X POST http://localhost:19080/api/ch12/id-token/validate -H 'Content-Type: application/json' \
   -d "{\"idToken\":\"$IDT\",\"expectedClientId\":\"demo-client\",\"expectedNonce\":\"n-123\"}"
 ```
 
@@ -170,19 +170,19 @@ curl -s -X POST http://localhost:18080/api/ch12/id-token/validate -H 'Content-Ty
 
 ```bash
 # 1. 사용자 개인키로 페이로드 서명 (JWS, RS256) — 부인 방지의 핵심
-JWS=$(curl -s -X POST http://localhost:18080/api/ch13/jws/rsa/sign -H 'Content-Type: application/json' \
+JWS=$(curl -s -X POST http://localhost:19080/api/ch13/jws/rsa/sign -H 'Content-Type: application/json' \
   -d '{"subject":"customer-42","issuer":"mobile-app"}' \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['jws'])")
 
 # 2. 서명 검증 (수신 측: 신뢰된 발급자 서명인지 확인 → 위조 불가 증명)
-curl -s -X POST http://localhost:18080/api/ch13/jws/rsa/verify -H 'Content-Type: application/json' \
+curl -s -X POST http://localhost:19080/api/ch13/jws/rsa/verify -H 'Content-Type: application/json' \
   -d "{\"jwt\":\"$JWS\"}"
 
 # 3. 기밀성까지 필요하면 JWE로 암호화 (RSA-OAEP-256 + A128GCM, compact = 5부분)
 #    책의 규칙: "서명 먼저 → 암호화" 순서를 따른다.
-JWE=$(curl -s -X POST http://localhost:18080/api/ch13/jwe/encrypt -H 'Content-Type: application/json' \
+JWE=$(curl -s -X POST http://localhost:19080/api/ch13/jwe/encrypt -H 'Content-Type: application/json' \
   -d '{"subject":"customer-42"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['jwe'])")
-curl -s -X POST http://localhost:18080/api/ch13/jwe/decrypt -H 'Content-Type: application/json' \
+curl -s -X POST http://localhost:19080/api/ch13/jwe/decrypt -H 'Content-Type: application/json' \
   -d "{\"jwt\":\"$JWE\"}"
 ```
 
@@ -202,16 +202,16 @@ curl -s -X POST http://localhost:18080/api/ch13/jwe/decrypt -H 'Content-Type: ap
 
 ```bash
 # 1. 클라이언트가 첫 번째 API용 토큰 획득
-TOKEN=$(curl -s -u demo-service-client:service-secret -X POST http://localhost:18080/oauth2/token \
+TOKEN=$(curl -s -u demo-service-client:service-secret -X POST http://localhost:19080/oauth2/token \
   -d grant_type=client_credentials -d scope='ch7.read ch7.write' \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 # 2. 첫 번째 API가 두 번째 API 호출용으로 토큰을 chain 교환 (좁은 scope + 다른 audience)
-curl -s -X POST http://localhost:18080/api/ch9b/chain/token -H 'Content-Type: application/json' \
+curl -s -X POST http://localhost:19080/api/ch9b/chain/token -H 'Content-Type: application/json' \
   -d "{\"oauthToken\":\"$TOKEN\",\"scope\":\"ch7.read\",\"audience\":\"myhealth-api\"}"
 
 # 3. 원본에 없던 scope로 상향 시도 → 거부
-curl -s -X POST http://localhost:18080/api/ch9b/chain/token -H 'Content-Type: application/json' \
+curl -s -X POST http://localhost:19080/api/ch9b/chain/token -H 'Content-Type: application/json' \
   -d "{\"oauthToken\":\"$TOKEN\",\"scope\":\"admin.super\"}"   # -> invalid_scope
 ```
 
@@ -232,12 +232,12 @@ master가 발급한 **self-explanatory JWT(iss 포함)** 로 어느 부서 API�
 
 ```bash
 # master(=우리 인가 서버)가 JWT access token 발급
-TOKEN=$(curl -s -u demo-service-client:service-secret -X POST http://localhost:18080/oauth2/token \
+TOKEN=$(curl -s -u demo-service-client:service-secret -X POST http://localhost:19080/oauth2/token \
   -d grant_type=client_credentials -d scope=ch7.read \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 # 부서 인가 서버가 master introspection으로 토큰 검증 (active/scope/client_id/aud)
-curl -s -u demo-service-client:service-secret -X POST http://localhost:18080/oauth2/introspect \
+curl -s -u demo-service-client:service-secret -X POST http://localhost:19080/oauth2/introspect \
   -d "token=$TOKEN"
 ```
 
@@ -260,10 +260,10 @@ token** 단계는 `ch11`로 재현한다.
 
 ```bash
 # (a) ch5 브로커드 위임: 원본 토큰을 다른 audience/좁은 scope로 교환 (STS 토큰 교환에 대응)
-LTOKEN=$(curl -s -u lucidchart-client:lucidchart-secret -X POST http://localhost:18080/oauth2/token \
+LTOKEN=$(curl -s -u lucidchart-client:lucidchart-secret -X POST http://localhost:19080/oauth2/token \
   -d grant_type=client_credentials -d scope='ch5.read ch5.write' \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
-curl -s -H "Authorization: Bearer $LTOKEN" -X POST http://localhost:18080/api/ch5/broker/exchange \
+curl -s -H "Authorization: Bearer $LTOKEN" -X POST http://localhost:19080/api/ch5/broker/exchange \
   -H 'Content-Type: application/json' -d '{"audience":"api-region-sts","scope":["ch5.read"]}'
 
 # (b) ch11: 최종적으로 (외부 IdP가 서명한) assertion을 access token으로 교환 → API 접근
@@ -285,23 +285,23 @@ MAC 토큰**을 쓴다. MAC 토큰은 API별 발급·개별 폐기가 가능해 
 
 ```bash
 # 1. 데모 키쌍 생성 (privateJwk는 서버가 문자열로 받으므로 json.dumps로 감싸 전달)
-KEYS=$(curl -s -X POST http://localhost:18080/api/ch8/dpop/keypair)
+KEYS=$(curl -s -X POST http://localhost:19080/api/ch8/dpop/keypair)
 PRIVATE_JWK=$(echo "$KEYS" | python3 -c "import sys,json;print(json.dumps(json.load(sys.stdin)['privateJwk']))")
 
 # 2. 토큰 요청용 DPoP proof 서명
-PROOF=$(curl -s -X POST http://localhost:18080/api/ch8/dpop/proof -H 'Content-Type: application/json' \
-  -d "{\"privateJwk\": $PRIVATE_JWK, \"htm\":\"POST\", \"htu\":\"http://localhost:18080/api/ch8/dpop/token\"}" \
+PROOF=$(curl -s -X POST http://localhost:19080/api/ch8/dpop/proof -H 'Content-Type: application/json' \
+  -d "{\"privateJwk\": $PRIVATE_JWK, \"htm\":\"POST\", \"htu\":\"http://localhost:19080/api/ch8/dpop/token\"}" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['proof'])")
 
 # 3. DPoP-바인딩 access token 획득
-TOKEN=$(curl -s -X POST http://localhost:18080/api/ch8/dpop/token -H "DPoP: $PROOF" \
+TOKEN=$(curl -s -X POST http://localhost:19080/api/ch8/dpop/token -H "DPoP: $PROOF" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 # 4. 리소스 요청용 새 proof(ath 바인딩) 서명 후, 토큰 + proof 동시 제시
-PROOF2=$(curl -s -X POST http://localhost:18080/api/ch8/dpop/proof -H 'Content-Type: application/json' \
-  -d "{\"privateJwk\": $PRIVATE_JWK, \"htm\":\"GET\", \"htu\":\"http://localhost:18080/api/ch8/protected/resource\", \"accessToken\":\"$TOKEN\"}" \
+PROOF2=$(curl -s -X POST http://localhost:19080/api/ch8/dpop/proof -H 'Content-Type: application/json' \
+  -d "{\"privateJwk\": $PRIVATE_JWK, \"htm\":\"GET\", \"htu\":\"http://localhost:19080/api/ch8/protected/resource\", \"accessToken\":\"$TOKEN\"}" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['proof'])")
-curl -H "Authorization: Bearer $TOKEN" -H "DPoP: $PROOF2" http://localhost:18080/api/ch8/protected/resource
+curl -H "Authorization: Bearer $TOKEN" -H "DPoP: $PROOF2" http://localhost:19080/api/ch8/protected/resource
 ```
 
 **관찰 포인트**: bearer 토큰과 달리, 토큰을 훔쳐도 **개인키가 없으면** 유효한

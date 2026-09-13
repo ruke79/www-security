@@ -29,9 +29,12 @@ import java.util.Map;
 public class ExternalIdpController {
 
     private final JwtEncoder externalIdpJwtEncoder;
+    private final String issuer;
 
-    public ExternalIdpController(JwtEncoder externalIdpJwtEncoder) {
+    public ExternalIdpController(JwtEncoder externalIdpJwtEncoder,
+                                 @org.springframework.beans.factory.annotation.Value("${app.issuer-uri}") String issuer) {
         this.externalIdpJwtEncoder = externalIdpJwtEncoder;
+        this.issuer = issuer;
     }
 
     @GetMapping("/external-idp/assertion")
@@ -51,7 +54,7 @@ public class ExternalIdpController {
         JwsHeader jwsHeader = JwsHeader.with(SignatureAlgorithm.RS256).build();
         String assertion = externalIdpJwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
 
-        String curlCommand = "curl -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:18080/oauth2/token "
+        String curlCommand = "curl -u demo-jwtbearer-client:jwtbearer-secret -X POST " + issuer + "/oauth2/token "
                 + "-d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer "
                 + "-d assertion=" + assertion;
 

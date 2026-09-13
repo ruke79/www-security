@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * Chapter 7 - a stand-in "redirect_uri" for demo-authcode-client
- * (registered as http://127.0.0.1:18080/authorized), so the Authorization
+ * (registered as http://127.0.0.1:19080/authorized), so the Authorization
  * Code + PKCE flow can be exercised entirely with curl, without a real
  * browser-based OAuth client.
  *
@@ -42,10 +42,10 @@ public class AuthorizedRedirectController {
         body.put("code", code);
         body.put("state", state);
         body.put("howToExchange",
-                "curl -u demo-authcode-client: -X POST http://localhost:18080/oauth2/token " +
+                "curl -u demo-authcode-client: -X POST http://localhost:19080/oauth2/token " +
                         "-d grant_type=authorization_code " +
                         "-d code=" + code + " " +
-                        "-d redirect_uri=http://127.0.0.1:18080/authorized " +
+                        "-d redirect_uri=http://127.0.0.1:19080/authorized " +
                         "-d code_verifier=<the code_verifier you used to derive the code_challenge>");
         return body;
     }
