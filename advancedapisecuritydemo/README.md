@@ -21,6 +21,11 @@ testable group of REST endpoints.
 > federated-identity impersonation, UMA authorization bypass) derived from
 > this codebase, each with root cause and remediation notes.
 
+> **Book summary (Korean)**: see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) for a
+> detailed chapter-by-chapter Korean summary of the book this project is based
+> on. Note that chapters 7-10 of the source PDFs contained no body text, so
+> those chapters are supplemented from standard knowledge and marked as such.
+
 ## Chapter -> endpoint map
 
 | Chapter | Topic | Base path |

@@ -27,3 +27,6 @@ README](advancedapisecuritydemo/README.md)를 참고하세요.
 모의 해킹 실습용으로 정리한 취약점 시나리오(재현 절차, 근본 원인, 대응 방안)는
 [VULNERABILITY-SCENARIOS.md](advancedapisecuritydemo/VULNERABILITY-SCENARIOS.md)를
 참고하세요.
+
+이 데모의 기반이 된 책 『Advanced API Security』의 장별 상세 요약(한글)은
+[BOOK-SUMMARY.md](advancedapisecuritydemo/BOOK-SUMMARY.md)를 참고하세요.
