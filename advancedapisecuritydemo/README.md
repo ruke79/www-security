@@ -25,6 +25,10 @@ testable group of REST endpoints.
 > detailed chapter-by-chapter Korean summary (chapters 2-14) of the book this
 > project is based on.
 
+> **Chapter 14 patterns**: see [PATTERNS.md](PATTERNS.md) for a Korean guide
+> that reproduces each of the book's ten "Patterns and Practices" as runnable
+> demo commands (composed from ch4/5/8/9b/11/12/13).
+
 ## Chapter -> endpoint map
 
 | Chapter | Topic | Base path |
@@ -199,7 +203,7 @@ private key.
 ```bash
 # 1. Generate a demo keypair
 KEYS=$(curl -s -X POST http://localhost:8080/api/ch8/dpop/keypair)
-PRIVATE_JWK=$(echo "$KEYS" | python3 -c "import sys,json;print(json.load(sys.stdin)['privateJwk'])")
+PRIVATE_JWK=$(echo "$KEYS" | python3 -c "import sys,json;print(json.dumps(json.load(sys.stdin)['privateJwk']))")
 
 # 2. Sign a DPoP proof for POST /api/ch8/dpop/token
 PROOF=$(curl -s -X POST http://localhost:8080/api/ch8/dpop/proof -H 'Content-Type: application/json' \

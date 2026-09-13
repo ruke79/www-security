@@ -30,3 +30,6 @@ README](advancedapisecuritydemo/README.md)를 참고하세요.
 
 이 데모의 기반이 된 책 『Advanced API Security』의 장별 상세 요약(한글)은
 [BOOK-SUMMARY.md](advancedapisecuritydemo/BOOK-SUMMARY.md)를 참고하세요.
+
+책 14장의 10가지 API 보안 패턴을 데모 엔드포인트로 재현하는 실행 가이드(한글)는
+[PATTERNS.md](advancedapisecuritydemo/PATTERNS.md)를 참고하세요.
