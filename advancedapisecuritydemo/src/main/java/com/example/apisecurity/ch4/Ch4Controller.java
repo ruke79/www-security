@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * Reachable only through the dedicated mTLS connector (default port 8443,
  * see application.yml "app.mtls" and config/MtlsSecurityConfig). A plain
- * HTTP request to port 8080 will never carry a client certificate, so
+ * HTTP request to port 18080 will never carry a client certificate, so
  * Spring Security's x509() filter will reject it with 401 before this
  * controller is even invoked.
  */

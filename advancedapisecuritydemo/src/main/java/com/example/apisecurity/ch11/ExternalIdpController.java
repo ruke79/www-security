@@ -51,7 +51,7 @@ public class ExternalIdpController {
         JwsHeader jwsHeader = JwsHeader.with(SignatureAlgorithm.RS256).build();
         String assertion = externalIdpJwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
 
-        String curlCommand = "curl -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:8080/oauth2/token "
+        String curlCommand = "curl -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localhost:18080/oauth2/token "
                 + "-d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer "
                 + "-d assertion=" + assertion;
 

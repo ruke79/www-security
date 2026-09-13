@@ -33,7 +33,7 @@ import org.springframework.security.web.SecurityFilterChain;
  *  2. A dedicated SecurityFilterChain (order 5) that requires a trusted
  *     client certificate for anything under /api/ch4/**, regardless of
  *     which port the request arrived on. In practice only the 8443
- *     connector's requests will ever satisfy it, since the main :8080
+ *     connector's requests will ever satisfy it, since the main :18080
  *     connector never asks for a client certificate at all.
  *
  * Run certs/generate-certs.sh first (from the project root) to produce the
