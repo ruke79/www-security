@@ -5,14 +5,17 @@
 재현하는 방법을 정리한 문서입니다. 각 패턴은 앞선 장들의 구현을 **조합**해서
 구성됩니다.
 
-> 실행 전 앱을 먼저 띄우세요. (Chapter 4/패턴 1의 mTLS만 8443 포트 + 인증서가
-> 필요하고, 나머지는 19080 평문 HTTP로 됩니다.)
+> 실행 전 앱을 먼저 띄우세요. 기본은 19080 평문 HTTP만 열립니다(mTLS는 off).
+> 패턴 1(mTLS)만 8443 포트 + 인증서가 필요해 `MTLS_ENABLED=true`로 켜야 합니다.
 >
 > ```bash
-> # 패턴 1(mTLS) 실습까지 하려면: ./certs/generate-certs.sh 를 먼저 실행
+> # 대부분의 패턴(2~10): 그냥 실행 (19080). 포트 충돌 시 APP_PORT로 변경
 > mvn spring-boot:run
-> # mTLS 커넥터가 필요 없으면(패턴 1 제외):
-> mvn spring-boot:run -Dspring-boot.run.arguments=--app.mtls.enabled=false
+> #   APP_PORT=29080 mvn spring-boot:run
+>
+> # 패턴 1(mTLS)까지 실습: 인증서 생성 후 mTLS 켜기
+> ./certs/generate-certs.sh
+> MTLS_ENABLED=true mvn spring-boot:run
 > ```
 >
 > 아래 명령들은 실제로 앱을 기동해 검증했습니다. 책의 시나리오 설명은
@@ -43,8 +46,9 @@
 **데모 재현** (`ch4`): 클라이언트 인증서를 제시해야만 접근 가능한 mTLS 엔드포인트.
 
 ```bash
-./certs/generate-certs.sh        # 최초 1회 (키/트러스트스토어 생성)
-mvn spring-boot:run              # mTLS 커넥터 8443 활성화
+./certs/generate-certs.sh                 # 최초 1회 (키/트러스트스토어 생성)
+MTLS_ENABLED=true mvn spring-boot:run      # mTLS 커넥터 8443 활성화 (기본은 off)
+# 8443도 겹치면: MTLS_ENABLED=true MTLS_PORT=18443 mvn spring-boot:run
 
 # 신뢰된 클라이언트 인증서로 접근 → 200 + 인증서 Subject DN
 curl -k --cert certs/client-cert.pem --key certs/client-key.pem \

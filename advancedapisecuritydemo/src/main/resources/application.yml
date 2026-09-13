@@ -30,9 +30,16 @@ app:
   # to request (but not force, at the TLS layer) a client certificate. The
   # actual enforcement ("you MUST present a trusted client certificate") is
   # done by Spring Security's x509() filter chain on /api/ch4/**.
+  #
+  # Disabled by default so the app always starts even when 8443 is taken and
+  # even before you have run certs/generate-certs.sh. Enable it only when you
+  # want to exercise Chapter 4:
+  #   ./certs/generate-certs.sh          # once, to create the keystores
+  #   MTLS_ENABLED=true mvn spring-boot:run
+  #   # if 8443 is busy too, pick another: MTLS_ENABLED=true MTLS_PORT=18443 mvn spring-boot:run
   mtls:
-    enabled: true
-    port: 8443
+    enabled: ${MTLS_ENABLED:false}
+    port: ${MTLS_PORT:8443}
     keystore:
       path: certs/server-keystore.p12
       password: changeit

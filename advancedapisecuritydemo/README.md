@@ -72,15 +72,24 @@ summary but not implemented.
 ## Build & run
 
 ```bash
-# 1. Generate the TLS key material needed for Chapter 4 (run once, from the project root)
-./certs/generate-certs.sh
-
-# 2. Build and run
+# Build and run - listens on http://localhost:19080 by default.
 mvn spring-boot:run
+
+# Port already in use? Override it (issuer-uri follows the same value):
+APP_PORT=29080 mvn spring-boot:run
 ```
 
-The app listens on `http://localhost:19080` (plain) and, for Chapter 4 only,
-`https://localhost:8443` (mTLS).
+The app listens on `http://localhost:19080` (plain HTTP). The port is
+`${APP_PORT:19080}` - set `APP_PORT` to any free port to avoid a clash.
+
+**Chapter 4 (mTLS) is disabled by default** so the app always starts even
+when 8443 is busy or the TLS keystores don't exist yet. To exercise Chapter 4:
+
+```bash
+./certs/generate-certs.sh              # once, creates the keystores under certs/
+MTLS_ENABLED=true mvn spring-boot:run  # opens the mTLS connector on 8443
+# if 8443 is also taken:  MTLS_ENABLED=true MTLS_PORT=18443 mvn spring-boot:run
+```
 
 Demo user accounts (HTTP Basic / Digest / the Authorization Server's own
 login page):
@@ -139,7 +148,9 @@ curl --digest -u alice:alice123 http://localhost:19080/api/ch3/digest/recipe/100
 ## Chapter 4 - Mutual Authentication with TLS
 
 ```bash
-./certs/generate-certs.sh   # if you haven't already
+# mTLS is off by default - generate keystores and start with it enabled:
+./certs/generate-certs.sh                 # if you haven't already
+MTLS_ENABLED=true mvn spring-boot:run      # opens the mTLS connector on 8443
 
 curl -k --cert certs/client-cert.pem --key certs/client-key.pem \
      https://localhost:8443/api/ch4/whoami

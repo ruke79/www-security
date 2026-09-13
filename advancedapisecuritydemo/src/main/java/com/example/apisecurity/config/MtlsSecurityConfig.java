@@ -75,12 +75,16 @@ public class MtlsSecurityConfig {
 
             SSLHostConfigCertificate certificate =
                     new SSLHostConfigCertificate(sslHostConfig, SSLHostConfigCertificate.Type.RSA);
-            certificate.setCertificateKeystoreFile(keystorePath);
+            // Resolve to an absolute path: Tomcat interprets a relative keystore
+            // path against its own (temp) working directory, not the process CWD,
+            // so a bare "certs/..." would be looked up under /tmp/tomcat.*/ and
+            // fail with FileNotFoundException. Absolutize against the launch dir.
+            certificate.setCertificateKeystoreFile(new java.io.File(keystorePath).getAbsolutePath());
             certificate.setCertificateKeystorePassword(keystorePassword);
             certificate.setCertificateKeystoreType(keystoreType);
             sslHostConfig.addCertificate(certificate);
 
-            sslHostConfig.setTruststoreFile(truststorePath);
+            sslHostConfig.setTruststoreFile(new java.io.File(truststorePath).getAbsolutePath());
             sslHostConfig.setTruststorePassword(truststorePassword);
             sslHostConfig.setTruststoreType(truststoreType);
 
