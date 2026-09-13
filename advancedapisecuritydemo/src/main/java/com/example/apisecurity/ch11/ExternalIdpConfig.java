@@ -54,17 +54,22 @@ public class ExternalIdpConfig {
         }
     }
 
+    /**
+     * The external IdP's signing key is deliberately NOT exposed as a
+     * {@code JWKSource<SecurityContext>} bean: Spring Authorization Server looks
+     * up that type by class (not by name) to find the Authorization Server's own
+     * signing key, so a second JWKSource bean would make that lookup ambiguous
+     * and break context startup. We build the JWKSource locally and hand it
+     * straight to this encoder instead, keeping the external IdP's key material
+     * scoped to this "partner company" trust domain.
+     */
     @Bean
-    public JWKSource<SecurityContext> externalIdpJwkSource() {
+    public JwtEncoder externalIdpJwtEncoder() {
         RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) KEY_PAIR.getPublic())
                 .privateKey((RSAPrivateKey) KEY_PAIR.getPrivate())
                 .keyID(UUID.randomUUID().toString())
                 .build();
-        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
-    }
-
-    @Bean
-    public JwtEncoder externalIdpJwtEncoder(JWKSource<SecurityContext> externalIdpJwkSource) {
+        JWKSource<SecurityContext> externalIdpJwkSource = new ImmutableJWKSet<>(new JWKSet(rsaKey));
         return new NimbusJwtEncoder(externalIdpJwkSource);
     }
 

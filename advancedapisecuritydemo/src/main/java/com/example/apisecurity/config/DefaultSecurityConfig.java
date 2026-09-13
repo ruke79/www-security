@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -22,9 +22,20 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class DefaultSecurityConfig {
 
+    /**
+     * A {@code DelegatingPasswordEncoder} (not a bare {@code BCryptPasswordEncoder})
+     * so that stored secrets carrying a {@code {id}} prefix are matched by the
+     * right algorithm. This is required because the SAME PasswordEncoder bean is
+     * used by Spring Authorization Server to verify the registered clients'
+     * secrets, which are stored as {@code {noop}...} (see AuthorizationServerConfig);
+     * a plain BCrypt encoder would try to BCrypt-match {@code {noop}service-secret}
+     * and fail every OAuth token request with {@code invalid_client}. New user
+     * passwords (ch2) are encoded with the default id (bcrypt) and gain a
+     * {@code {bcrypt}} prefix automatically.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean

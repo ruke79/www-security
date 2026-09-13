@@ -22,9 +22,8 @@ testable group of REST endpoints.
 > this codebase, each with root cause and remediation notes.
 
 > **Book summary (Korean)**: see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) for a
-> detailed chapter-by-chapter Korean summary of the book this project is based
-> on. Note that chapters 7-10 of the source PDFs contained no body text, so
-> those chapters are supplemented from standard knowledge and marked as such.
+> detailed chapter-by-chapter Korean summary (chapters 2-14) of the book this
+> project is based on.
 
 ## Chapter -> endpoint map
 
@@ -34,15 +33,21 @@ testable group of REST endpoints.
 | 3 | HTTP Basic / Digest Authentication | `/api/ch3/basic/**`, `/api/ch3/digest/**` |
 | 4 | Mutual Authentication with TLS | `/api/ch4/**` (port **8443**, client cert required) |
 | 5 | Identity Delegation | `/api/ch5/**` |
+| 6 | OAuth 1.0 (signature/nonce mechanics) | `/api/ch6/**` |
 | 7 | OAuth 2.0 (core) | `/oauth2/**`, `/api/ch7/**` |
 | 8 | Sender-constrained tokens | `/api/ch8/**` (DPoP, RFC 9449 - modern replacement for the deprecated OAuth MAC Token Profile) |
-| 9 | OAuth 2.0 Profiles | `/oauth2/introspect`, `/oauth2/revoke`, `/api/ch9/**` |
+| 9 | OAuth 2.0 Profiles | `/oauth2/introspect`, `/oauth2/revoke`, `/api/ch9/**`, `/api/ch9b/**` (chain grant + dynamic client registration) |
 | 10 | User-Managed Access (UMA) 2.0 | `/api/ch10/**` |
 | 11 | Federation | `/api/ch11/**` |
+| 12 | OpenID Connect | `/api/ch12/**` (ID token issue/validate, userinfo) |
+| 13 | JWT, JWS, JWE | `/api/ch13/**` (JWS sign/verify, JWE encrypt/decrypt) |
+| 14 | Patterns and Practices | see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) (composed from ch4/8/9b/11/12/13) |
 
-Only OAuth 2.0-era mechanisms are implemented (no OAuth 1.0 or the
-proprietary pre-2.0 schemes Chapter 5 surveys historically, like Google
-ClientLogin/AuthSub, Flickr Auth, or Yahoo BBAuth).
+Chapter 6 (OAuth 1.0) is provided as a **mechanics playground** (signature base
+string, HMAC-SHA1/PLAINTEXT signature, nonce replay guard) rather than a full
+1.0 server. The proprietary pre-2.0 schemes Chapter 5 surveys historically
+(Google ClientLogin/AuthSub, Flickr Auth, Yahoo BBAuth) are described in the
+summary but not implemented.
 
 ### Deliberate design substitutions
 
@@ -277,6 +282,100 @@ TOKEN=$(curl -s -u demo-jwtbearer-client:jwtbearer-secret -X POST http://localho
 curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/ch11/resource
 ```
 
+## Chapter 6 - OAuth 1.0 (signature & nonce mechanics)
+
+A teaching playground for the OAuth 1.0 "token dance" signature rules - not a
+full 1.0 server.
+
+```bash
+# Build the RFC 5849 signature base string
+curl -s -X POST http://localhost:8080/api/ch6/signature/base-string \
+  -H 'Content-Type: application/json' \
+  -d '{"httpMethod":"POST","baseUri":"http://server.com/oauth/request-token",
+       "oauthParams":{"oauth_consumer_key":"key1","oauth_nonce":"abc","oauth_signature_method":"HMAC-SHA1"}}'
+
+# Compute an HMAC-SHA1 oauth_signature (signing key = consumer_secret&token_secret)
+curl -s -X POST http://localhost:8080/api/ch6/signature/hmac-sha1 \
+  -H 'Content-Type: application/json' \
+  -d '{"httpMethod":"POST","baseUri":"http://server.com/oauth/request-token",
+       "oauthParams":{"oauth_consumer_key":"key1","oauth_nonce":"abc"},
+       "consumerSecret":"s3cr3t","tokenSecret":""}'
+
+# Nonce replay guard: first call 200, replay of the same nonce -> 401
+curl -i -X POST http://localhost:8080/api/ch6/nonce/check \
+  -H 'Content-Type: application/json' -d '{"consumerKey":"k","nonce":"nonce-xyz"}'
+curl -i -X POST http://localhost:8080/api/ch6/nonce/check \
+  -H 'Content-Type: application/json' -d '{"consumerKey":"k","nonce":"nonce-xyz"}'   # expect 401
+```
+
+## Chapter 9 (cont.) - Chain Grant Type & Dynamic Client Registration
+
+```bash
+# Get an original access token (client_credentials, ch7 scopes)
+TOKEN=$(curl -s -u demo-service-client:service-secret -X POST http://localhost:8080/oauth2/token \
+  -d grant_type=client_credentials -d scope='ch7.read ch7.write' \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+# Chain Grant: exchange it for a NARROWER-scoped token for a second API (no refresh token)
+curl -s -X POST http://localhost:8080/api/ch9b/chain/token -H 'Content-Type: application/json' \
+  -d "{\"oauthToken\":\"$TOKEN\",\"scope\":\"ch7.read\",\"audience\":\"second-api\"}"
+
+# Scope escalation is rejected (requested scope not a subset of the original)
+curl -s -X POST http://localhost:8080/api/ch9b/chain/token -H 'Content-Type: application/json' \
+  -d "{\"oauthToken\":\"$TOKEN\",\"scope\":\"admin.super\"}"   # -> invalid_scope
+
+# Dynamic Client Registration -> per-install client_id/client_secret
+curl -s -X POST http://localhost:8080/api/ch9b/register -H 'Content-Type: application/json' \
+  -d '{"redirectUris":["https://client/cb"],"grantTypes":["authorization_code"],"tokenEndpointAuthMethod":"client_secret_basic"}'
+# A public client (auth method "none") gets a client_id but NO secret:
+curl -s -X POST http://localhost:8080/api/ch9b/register -H 'Content-Type: application/json' \
+  -d '{"tokenEndpointAuthMethod":"none"}'
+```
+
+## Chapter 12 - OpenID Connect
+
+```bash
+# Issue an OIDC ID token (signed JWT) for a user, with a nonce
+IDT=$(curl -s -X POST http://localhost:8080/api/ch12/id-token/issue -H 'Content-Type: application/json' \
+  -d '{"subject":"alice@foo.com","clientId":"demo-client","nonce":"n-123"}' \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['id_token'])")
+
+# Validate it: signature + iss + aud (=clientId) + nonce
+curl -s -X POST http://localhost:8080/api/ch12/id-token/validate -H 'Content-Type: application/json' \
+  -d "{\"idToken\":\"$IDT\",\"expectedClientId\":\"demo-client\",\"expectedNonce\":\"n-123\"}"
+
+# A wrong nonce or wrong audience is rejected with 401
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8080/api/ch12/id-token/validate \
+  -H 'Content-Type: application/json' -d "{\"idToken\":\"$IDT\",\"expectedNonce\":\"WRONG\"}"   # 401
+
+# UserInfo-style: return the claims carried by the ID token
+curl -s -X POST http://localhost:8080/api/ch12/userinfo -H 'Content-Type: application/json' \
+  -d "{\"idToken\":\"$IDT\"}"
+```
+
+## Chapter 13 - JWT, JWS, and JWE
+
+```bash
+# JWS with HMAC-SHA256 (secret must be >= 32 bytes)
+SECRET=0123456789abcdef0123456789abcdef
+JWS=$(curl -s -X POST http://localhost:8080/api/ch13/jws/hmac/sign -H 'Content-Type: application/json' \
+  -d "{\"secret\":\"$SECRET\",\"subject\":\"alice\"}" | python3 -c "import sys,json;print(json.load(sys.stdin)['jws'])")
+curl -s -X POST http://localhost:8080/api/ch13/jws/hmac/verify -H 'Content-Type: application/json' \
+  -d "{\"jwt\":\"$JWS\",\"secret\":\"$SECRET\"}"   # {"valid":true,...}; a wrong secret -> valid:false
+
+# JWS with RSA-SHA256 (server keypair)
+RJWS=$(curl -s -X POST http://localhost:8080/api/ch13/jws/rsa/sign -H 'Content-Type: application/json' \
+  -d '{"subject":"carol"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['jws'])")
+curl -s -X POST http://localhost:8080/api/ch13/jws/rsa/verify -H 'Content-Type: application/json' \
+  -d "{\"jwt\":\"$RJWS\"}"
+
+# JWE with RSA-OAEP-256 + A128GCM (compact serialization = 5 dot-separated parts)
+JWE=$(curl -s -X POST http://localhost:8080/api/ch13/jwe/encrypt -H 'Content-Type: application/json' \
+  -d '{"subject":"bob"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['jwe'])")
+curl -s -X POST http://localhost:8080/api/ch13/jwe/decrypt -H 'Content-Type: application/json' \
+  -d "{\"jwt\":\"$JWE\"}"
+```
+
 ---
 
 ## Project layout
@@ -287,11 +386,15 @@ src/main/java/com/example/apisecurity/
   ch3/    HTTP Basic/Digest Authentication (shared Recipe API)
   ch4/    Mutual Authentication with TLS
   ch5/    Identity Delegation (direct + brokered/token-exchange)
+  ch6/    OAuth 1.0 signature (HMAC-SHA1/PLAINTEXT) + nonce replay mechanics
   ch7/    OAuth 2.0 core (real Spring Authorization Server)
   ch8/    DPoP sender-constrained tokens
-  ch9/    OAuth 2.0 Profiles + the custom JWT Bearer grant (RFC 7523)
+  ch9/    OAuth 2.0 Profiles + the custom JWT Bearer grant (RFC 7523);
+          Ch9bController adds Chain Grant Type + Dynamic Client Registration
   ch10/   User-Managed Access (UMA) 2.0
   ch11/   Federation (external IdP + the JWT Bearer grant from ch9)
+  ch12/   OpenID Connect (ID token issue/validate, userinfo)
+  ch13/   JWT/JWS/JWE (HS256/RS256 sign+verify, RSA-OAEP+A128GCM encrypt+decrypt)
   common/ Cross-chapter utilities (rate limiter)
   config/ All SecurityFilterChain / Authorization Server wiring
 certs/    TLS key material generation script for Chapter 4

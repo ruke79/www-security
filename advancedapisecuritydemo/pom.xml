@@ -71,6 +71,20 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!--
+              Emit method parameter names (-parameters) so Spring can
+              disambiguate same-typed beans by constructor/parameter name
+              (e.g. the two JWKSource<SecurityContext> beans: jwkSource vs
+              externalIdpJwkSource). Without this the context fails to start
+              with a "required a single bean, but 2 were found" error.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

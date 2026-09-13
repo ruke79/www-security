@@ -37,6 +37,13 @@ public class DefaultCatchAllSecurityConfig {
             throws Exception {
 
         http.userDetailsService(ch2UserDetailsService)
+                // CSRF is disabled here because this catch-all chain also serves
+                // the stateless JSON POST demo endpoints (ch6 OAuth 1.0 signatures,
+                // ch9b chain/dynamic-registration, ch10 UMA, ch12 OIDC, ch13
+                // JWS/JWE). Like every other chain in this project they are
+                // token/credential-in-body REST calls, not browser form posts,
+                // so the default CSRF protection would only reject them with 403.
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .formLogin(Customizer.withDefaults());
 
