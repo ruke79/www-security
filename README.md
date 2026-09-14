@@ -2,6 +2,11 @@
 
 웹 보안 및 모의 해킹(Web Pentest) 훈련을 위한 프로젝트 모음 레포지토리입니다.
 
+> ⚠️ **의도적으로 취약한 교육용 프로젝트입니다.** 일부 엔드포인트(`/api/lab/**`)는
+> 인증 없이 접근 가능하며 SQL 인젝션·XSS·SSRF·명령 주입·SSTI 등 실제 공격이
+> 동작하도록 만들어졌습니다. **오직 로컬/통제된 훈련 환경에서만 실행하고, 공개
+> 인터넷이나 공유 서버에 절대 배포하지 마세요.**
+
 ## 프로젝트 목록
 
 ### [advancedapisecuritydemo](advancedapisecuritydemo/)
@@ -37,3 +42,13 @@ README](advancedapisecuritydemo/README.md)를 참고하세요.
 각 메커니즘·취약점이 실무에서 어떻게 활용되는지("상황 → 적용 → 흔한 실수", IDOR·mTLS
 심화 포함) 정리한 실무 활용 가이드(한글)는
 [USE-CASES.md](advancedapisecuritydemo/USE-CASES.md)를 참고하세요.
+
+## 라이선스
+
+이 레포지토리의 **소스 코드**는 [MIT 라이선스](LICENSE)로 배포됩니다.
+
+단, `BOOK-SUMMARY.md`를 비롯한 요약 문서는 원서 *"Advanced API Security:
+Securing APIs with OAuth 2.0, OpenID Connect, JWS, and JWE"* (Prabath
+Siriwardena, Apress)의 내용을 학습용으로 요약·정리한 것으로, **원서의 저작권은
+원저작자/출판사에 있습니다.** MIT 라이선스는 이 프로젝트가 작성한 코드에만
+적용되며, 요약 문서의 원저작물 저작권에는 영향을 주지 않습니다.
