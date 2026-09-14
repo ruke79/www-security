@@ -1,0 +1,16 @@
+# MongoDB profile for the NoSQL-injection lab.
+#   docker compose up -d mongo
+#   SPRING_PROFILES_ACTIVE=mongo mvn spring-boot:run
+#
+# Host/port are overridable so nothing clashes with a MongoDB you may already
+# run on the standard 27017. Default host port is 17017 (see docker-compose.yml,
+# which maps the same MONGO_PORT). If 17017 is taken too, set it once for both:
+#   MONGO_PORT=27717 docker compose up -d mongo
+#   MONGO_PORT=27717 SPRING_PROFILES_ACTIVE=mongo mvn spring-boot:run
+spring:
+  # Re-enable MongoDB auto-configuration (the default profile excludes it).
+  autoconfigure:
+    exclude: []
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:17017}/${MONGO_DB:labdb}

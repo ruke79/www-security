@@ -41,3 +41,15 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # MongoDB for the NoSQL-injection lab. Host port defaults to 17017 (not the
+  # standard 27017); override with MONGO_PORT for both this and the app.
+  mongo:
+    image: mongo:7
+    ports:
+      - "${MONGO_PORT:-17017}:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

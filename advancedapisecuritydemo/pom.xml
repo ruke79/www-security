@@ -77,6 +77,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Training lab only: MongoDB for the NoSQL-injection lab. Active only
+             under the "mongo" Spring profile (its auto-config is excluded by
+             default in application.yml), so the app still starts with no Mongo. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

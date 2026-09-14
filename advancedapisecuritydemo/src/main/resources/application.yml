@@ -10,6 +10,16 @@ spring:
   application:
     name: advanced-api-security-demo
 
+  # MongoDB is only used by the NoSQL-injection lab (mongo profile). Exclude its
+  # auto-config by default so the app starts with no MongoDB running. The mongo
+  # profile (application-mongo.yml) clears this exclusion.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration
+
   # Training lab database (SQL-injection / stored-XSS labs). Default profile
   # uses H2 in-memory, so `mvn spring-boot:run` needs no external DB. Switch to
   # a real database with a Spring profile - see application-postgres.yml /
