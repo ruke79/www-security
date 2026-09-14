@@ -1,0 +1,20 @@
+# MySQL profile for the training lab.
+#   SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
+#
+# Host/port/credentials are all overridable so nothing clashes with a MySQL you
+# may already run on the standard 3306. The default host port is 13306 (see
+# docker-compose.yml, which maps the same MYSQL_PORT). If 13306 is also taken,
+# pick another and pass it to BOTH the DB and the app, e.g.:
+#   MYSQL_PORT=23306 docker compose up -d mysql
+#   MYSQL_PORT=23306 SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:13306}/${MYSQL_DB:labdb}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:lab}
+    password: ${MYSQL_PASSWORD:labpw}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-mysql.sql
+      data-locations: classpath:db/data.sql

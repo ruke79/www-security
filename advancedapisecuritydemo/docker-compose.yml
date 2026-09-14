@@ -1,0 +1,43 @@
+# Training-lab databases for the SQL-injection / stored-XSS labs.
+#
+# Start only what you need:
+#   docker compose up -d postgres      # then SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+#   docker compose up -d mysql         # then SPRING_PROFILES_ACTIVE=mysql    mvn spring-boot:run
+#
+# Host ports default to 15432 / 13306 (not the standard 5432 / 3306) to avoid
+# clashing with a database you may already run. If those are taken too, set
+# PG_PORT / MYSQL_PORT once and they apply to BOTH the container and the app:
+#   PG_PORT=25432 docker compose up -d postgres
+#   PG_PORT=25432 SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+#
+# These databases hold only throwaway demo data - never use them for anything
+# real. The app auto-creates/seeds the lab_* tables on startup (spring.sql.init).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: labdb
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: labpw
+    ports:
+      - "${PG_PORT:-15432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d labdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: labdb
+      MYSQL_USER: lab
+      MYSQL_PASSWORD: labpw
+      MYSQL_ROOT_PASSWORD: rootpw
+    ports:
+      - "${MYSQL_PORT:-13306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-plabpw"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

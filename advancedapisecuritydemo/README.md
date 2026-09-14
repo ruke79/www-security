@@ -46,6 +46,7 @@ testable group of REST endpoints.
 | 12 | OpenID Connect | `/api/ch12/**` (ID token issue/validate, userinfo) |
 | 13 | JWT, JWS, JWE | `/api/ch13/**` (JWS sign/verify, JWE encrypt/decrypt) |
 | 14 | Patterns and Practices | see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) (composed from ch4/8/9b/11/12/13) |
+| Lab | Web-attack basics: SQL injection, XSS | `/api/lab/sqli/**`, `/api/lab/xss/**` (see [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-9) |
 
 Chapter 6 (OAuth 1.0) is provided as a **mechanics playground** (signature base
 string, HMAC-SHA1/PLAINTEXT signature, nonce replay guard) rather than a full
@@ -391,6 +392,54 @@ curl -s -X POST http://localhost:19080/api/ch13/jwe/decrypt -H 'Content-Type: ap
   -d "{\"jwt\":\"$JWE\"}"
 ```
 
+## Web-attack basics lab - SQL injection & XSS
+
+> **Deliberately vulnerable, for local training only.** The book focuses on API
+> auth (OAuth/OIDC/JWT/mTLS) and the rest of this project is in-memory JSON APIs
+> with no SQLi/XSS surface. This lab adds a real SQL database and HTML rendering
+> so classic web attacks can be practised. Never expose `/api/lab/**` publicly.
+> Full walkthrough (payloads, root cause, fixes): [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-9.
+
+Runs on H2 in-memory by default (no external DB). Switch DB with a Spring
+profile - host ports default to non-standard values (PostgreSQL 15432, MySQL
+13306) to avoid clashes, and are overridable so nothing collides:
+
+```bash
+# Default: H2 in-memory
+mvn spring-boot:run
+
+# PostgreSQL (needs Docker): start DB, then run with the profile
+docker compose up -d postgres
+SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+#   15432 busy? one variable feeds both the container and the app:
+#   PG_PORT=25432 docker compose up -d postgres
+#   PG_PORT=25432 SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+
+# MySQL (needs Docker)
+docker compose up -d mysql
+SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
+#   MYSQL_PORT=23306 docker compose up -d mysql && MYSQL_PORT=23306 SPRING_PROFILES_ACTIVE=mysql mvn spring-boot:run
+```
+
+```bash
+# --- SQL injection ---
+# vulnerable: ' OR '1'='1  dumps every row; UNION SELECT leaks lab_users creds
+curl -s --get http://localhost:19080/api/lab/sqli/search --data-urlencode "name=' OR '1'='1"
+curl -s --get http://localhost:19080/api/lab/sqli/search \
+  --data-urlencode "name=' UNION SELECT id, password, id FROM lab_users --"
+# safe (parameterized): same payload matches nothing
+curl -s --get http://localhost:19080/api/lab/sqli/search-safe --data-urlencode "name=' OR '1'='1"
+
+# --- XSS (open the vulnerable URLs in a browser to see the script run) ---
+# reflected
+curl -s --get http://localhost:19080/api/lab/xss/reflect      --data-urlencode "msg=<script>alert(1)</script>"
+curl -s --get http://localhost:19080/api/lab/xss/reflect-safe --data-urlencode "msg=<script>alert(1)</script>"
+# stored
+curl -s -X POST http://localhost:19080/api/lab/xss/comments -H 'Content-Type: application/json' \
+  -d '{"author":"attacker","comment":"<img src=x onerror=alert(document.domain)>"}'
+#   then open  /api/lab/xss/comments/view  (vulnerable)  vs  /api/lab/xss/comments/view-safe
+```
+
 ---
 
 ## Project layout
@@ -410,9 +459,15 @@ src/main/java/com/example/apisecurity/
   ch11/   Federation (external IdP + the JWT Bearer grant from ch9)
   ch12/   OpenID Connect (ID token issue/validate, userinfo)
   ch13/   JWT/JWS/JWE (HS256/RS256 sign+verify, RSA-OAEP+A128GCM encrypt+decrypt)
+  lab/    Deliberately-vulnerable web-attack lab: SQL injection + XSS
+          (real SQL DB via H2/PostgreSQL/MySQL profiles) - LOCAL TRAINING ONLY
   common/ Cross-chapter utilities (rate limiter)
   config/ All SecurityFilterChain / Authorization Server wiring
+src/main/resources/
+  db/       schema-{h2,postgresql,mysql}.sql + data.sql (lab tables)
+  application-postgres.yml / application-mysql.yml       (lab DB profiles)
 certs/    TLS key material generation script for Chapter 4
+docker-compose.yml   PostgreSQL/MySQL for the lab (overridable host ports)
 ```
 
 Multiple `@Order`-ed `SecurityFilterChain` beans route different URL

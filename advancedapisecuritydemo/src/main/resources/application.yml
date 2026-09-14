@@ -10,6 +10,23 @@ spring:
   application:
     name: advanced-api-security-demo
 
+  # Training lab database (SQL-injection / stored-XSS labs). Default profile
+  # uses H2 in-memory, so `mvn spring-boot:run` needs no external DB. Switch to
+  # a real database with a Spring profile - see application-postgres.yml /
+  # application-mysql.yml:
+  #   SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
+  #   SPRING_PROFILES_ACTIVE=mysql    mvn spring-boot:run
+  datasource:
+    url: jdbc:h2:mem:labdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-h2.sql
+      data-locations: classpath:db/data.sql
+
 logging:
   level:
     root: INFO
