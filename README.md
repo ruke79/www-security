@@ -1,54 +1,58 @@
 # www-security
 
-웹 보안 및 모의 해킹(Web Pentest) 훈련을 위한 프로젝트 모음 레포지토리입니다.
+> 🌐 [日本語](README.md) · [한국어](README.ko.md) · [English](README.en.md)
 
-> ⚠️ **의도적으로 취약한 교육용 프로젝트입니다.** 일부 엔드포인트(`/api/lab/**`)는
-> 인증 없이 접근 가능하며 SQL 인젝션·XSS·SSRF·명령 주입·SSTI 등 실제 공격이
-> 동작하도록 만들어졌습니다. **오직 로컬/통제된 훈련 환경에서만 실행하고, 공개
-> 인터넷이나 공유 서버에 절대 배포하지 마세요.**
+Web セキュリティおよびペネトレーションテスト(Web Pentest)のトレーニングを目的と
+したプロジェクト集のリポジトリです。
 
-## 프로젝트 목록
+> ⚠️ **意図的に脆弱に作られた教育用プロジェクトです。** 一部のエンドポイント
+> (`/api/lab/**`)は認証なしでアクセスでき、SQL インジェクション・XSS・SSRF・
+> コマンドインジェクション・SSTI などの実際の攻撃が動作するように作られています。
+> **必ずローカルまたは統制されたトレーニング環境でのみ実行し、公開インターネットや
+> 共有サーバーには絶対にデプロイしないでください。**
 
-### [advancedapisecuritydemo](advancedapisecuritydemo/)
+## プロジェクト一覧
 
-*"Advanced API Security: Securing APIs with OAuth 2.0, OpenID Connect, JWS, and
-JWE"* 도서를 기반으로 한 Spring Boot 3.4.1 / Spring Security 6.4 / Spring
-Authorization Server 데모 프로젝트입니다. 각 챕터를 독립적으로 테스트 가능한
-REST 엔드포인트 그룹으로 구현했습니다.
+### [api-security-lab](api-security-lab/)
 
-다루는 주제:
+書籍 *"Advanced API Security: Securing APIs with OAuth 2.0, OpenID Connect, JWS,
+and JWE"* をベースにした Spring Boot 3.4.1 / Spring Security 6.4 / Spring
+Authorization Server のデモプロジェクトです。各章を独立してテスト可能な REST
+エンドポイントのグループとして実装しています。
 
-- HTTP Basic / Digest 인증
-- 상호 TLS 인증(mTLS)
-- OAuth 2.0 인가 코드(PKCE) / 클라이언트 크리덴셜 플로우
-- 발신자 제한 토큰 (DPoP, RFC 9449)
-- OAuth 2.0 프로필 (토큰 introspection/revocation, JWT Bearer 그랜트)
+扱うトピック:
+
+- HTTP Basic / Digest 認証
+- 相互 TLS 認証(mTLS)
+- OAuth 2.0 認可コード(PKCE) / クライアントクレデンシャルフロー
+- 送信者制約トークン (DPoP, RFC 9449)
+- OAuth 2.0 プロファイル (トークンの introspection/revocation、JWT Bearer グラント)
 - User-Managed Access(UMA) 2.0
-- 외부 IdP 연동을 통한 페더레이션
+- 外部 IdP 連携によるフェデレーション
 
-자세한 실행 방법과 챕터별 엔드포인트 매핑은 [해당 프로젝트의
-README](advancedapisecuritydemo/README.md)를 참고하세요.
+詳細な実行方法と章ごとのエンドポイントマッピングは、[プロジェクトの
+README](api-security-lab/README.md) を参照してください。
 
-모의 해킹 실습용으로 정리한 취약점 시나리오(재현 절차, 근본 원인, 대응 방안)는
-[VULNERABILITY-SCENARIOS.md](advancedapisecuritydemo/VULNERABILITY-SCENARIOS.md)를
-참고하세요.
+ペネトレーションテスト実習用にまとめた脆弱性シナリオ(再現手順、根本原因、対策)は
+[VULNERABILITY-SCENARIOS.md](api-security-lab/VULNERABILITY-SCENARIOS.md) を
+参照してください。
 
-이 데모의 기반이 된 책 『Advanced API Security』의 장별 상세 요약(한글)은
-[BOOK-SUMMARY.md](advancedapisecuritydemo/BOOK-SUMMARY.md)를 참고하세요.
+このデモのベースとなった書籍『Advanced API Security』の章ごとの詳細な要約(韓国語)は
+[BOOK-SUMMARY.md](api-security-lab/BOOK-SUMMARY.md) を参照してください。
 
-책 14장의 10가지 API 보안 패턴을 데모 엔드포인트로 재현하는 실행 가이드(한글)는
-[PATTERNS.md](advancedapisecuritydemo/PATTERNS.md)를 참고하세요.
+書籍第 14 章の 10 個の API セキュリティパターンをデモエンドポイントで再現する実行
+ガイドは [PATTERNS.md](api-security-lab/PATTERNS.md) を参照してください。
 
-각 메커니즘·취약점이 실무에서 어떻게 활용되는지("상황 → 적용 → 흔한 실수", IDOR·mTLS
-심화 포함) 정리한 실무 활용 가이드(한글)는
-[USE-CASES.md](advancedapisecuritydemo/USE-CASES.md)를 참고하세요.
+各メカニズム・脆弱性が実務でどのように活用されるか(「状況 → 適用 → よくある
+ミス」、IDOR・mTLS の掘り下げを含む)をまとめた実務活用ガイドは
+[USE-CASES.md](api-security-lab/USE-CASES.md) を参照してください。
 
-## 라이선스
+## ライセンス
 
-이 레포지토리의 **소스 코드**는 [MIT 라이선스](LICENSE)로 배포됩니다.
+このリポジトリの**ソースコード**は [MIT ライセンス](LICENSE)で配布されます。
 
-단, `BOOK-SUMMARY.md`를 비롯한 요약 문서는 원서 *"Advanced API Security:
+ただし、`BOOK-SUMMARY.md` をはじめとする要約文書は、原書 *"Advanced API Security:
 Securing APIs with OAuth 2.0, OpenID Connect, JWS, and JWE"* (Prabath
-Siriwardena, Apress)의 내용을 학습용으로 요약·정리한 것으로, **원서의 저작권은
-원저작자/출판사에 있습니다.** MIT 라이선스는 이 프로젝트가 작성한 코드에만
-적용되며, 요약 문서의 원저작물 저작권에는 영향을 주지 않습니다.
+Siriwardena, Apress)の内容を学習用に要約・整理したものであり、**原書の著作権は
+原著者/出版社に帰属します。** MIT ライセンスはこのプロジェクトが作成したコードに
+のみ適用され、要約文書における原著作物の著作権には影響しません。

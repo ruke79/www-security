@@ -1,0 +1,56 @@
+# www-security
+
+> 🌐 [日本語](README.md) · [한국어](README.ko.md) · [English](README.en.md)
+
+웹 보안 및 모의 해킹(Web Pentest) 훈련을 위한 프로젝트 모음 레포지토리입니다.
+
+> ⚠️ **의도적으로 취약한 교육용 프로젝트입니다.** 일부 엔드포인트(`/api/lab/**`)는
+> 인증 없이 접근 가능하며 SQL 인젝션·XSS·SSRF·명령 주입·SSTI 등 실제 공격이
+> 동작하도록 만들어졌습니다. **오직 로컬/통제된 훈련 환경에서만 실행하고, 공개
+> 인터넷이나 공유 서버에 절대 배포하지 마세요.**
+
+## 프로젝트 목록
+
+### [api-security-lab](api-security-lab/)
+
+*"Advanced API Security: Securing APIs with OAuth 2.0, OpenID Connect, JWS, and
+JWE"* 도서를 기반으로 한 Spring Boot 3.4.1 / Spring Security 6.4 / Spring
+Authorization Server 데모 프로젝트입니다. 각 챕터를 독립적으로 테스트 가능한
+REST 엔드포인트 그룹으로 구현했습니다.
+
+다루는 주제:
+
+- HTTP Basic / Digest 인증
+- 상호 TLS 인증(mTLS)
+- OAuth 2.0 인가 코드(PKCE) / 클라이언트 크리덴셜 플로우
+- 발신자 제한 토큰 (DPoP, RFC 9449)
+- OAuth 2.0 프로필 (토큰 introspection/revocation, JWT Bearer 그랜트)
+- User-Managed Access(UMA) 2.0
+- 외부 IdP 연동을 통한 페더레이션
+
+자세한 실행 방법과 챕터별 엔드포인트 매핑은 [해당 프로젝트의
+README](api-security-lab/README.md)를 참고하세요.
+
+모의 해킹 실습용으로 정리한 취약점 시나리오(재현 절차, 근본 원인, 대응 방안)는
+[VULNERABILITY-SCENARIOS.md](api-security-lab/VULNERABILITY-SCENARIOS.md)를
+참고하세요.
+
+이 데모의 기반이 된 책 『Advanced API Security』의 장별 상세 요약(한글)은
+[BOOK-SUMMARY.md](api-security-lab/BOOK-SUMMARY.md)를 참고하세요.
+
+책 14장의 10가지 API 보안 패턴을 데모 엔드포인트로 재현하는 실행 가이드(한글)는
+[PATTERNS.md](api-security-lab/PATTERNS.md)를 참고하세요.
+
+각 메커니즘·취약점이 실무에서 어떻게 활용되는지("상황 → 적용 → 흔한 실수", IDOR·mTLS
+심화 포함) 정리한 실무 활용 가이드(한글)는
+[USE-CASES.md](api-security-lab/USE-CASES.md)를 참고하세요.
+
+## 라이선스
+
+이 레포지토리의 **소스 코드**는 [MIT 라이선스](LICENSE)로 배포됩니다.
+
+단, `BOOK-SUMMARY.md`를 비롯한 요약 문서는 원서 *"Advanced API Security:
+Securing APIs with OAuth 2.0, OpenID Connect, JWS, and JWE"* (Prabath
+Siriwardena, Apress)의 내용을 학습용으로 요약·정리한 것으로, **원서의 저작권은
+원저작자/출판사에 있습니다.** MIT 라이선스는 이 프로젝트가 작성한 코드에만
+적용되며, 요약 문서의 원저작물 저작권에는 영향을 주지 않습니다.

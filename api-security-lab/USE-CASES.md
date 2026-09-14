@@ -1,6 +1,8 @@
 # 실무 활용 가이드 (Use Cases)
 
-이 문서는 `advancedapisecuritydemo`에 구현된 각 메커니즘·취약점 시나리오가
+> 🌐 [한국어](USE-CASES.md) · [English](USE-CASES.en.md) · [日本語](USE-CASES.ja.md)
+
+이 문서는 `api-security-lab`에 구현된 각 메커니즘·취약점 시나리오가
 **실제 실무에서 어떻게 쓰이는지**를 정리한 것입니다. 각 항목은
 "실무 상황 → 이 프로젝트의 무엇이 대응되는가 → 흔한 실수" 형식입니다.
 

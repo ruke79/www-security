@@ -1,7 +1,9 @@
 # API 보안 패턴 재현 가이드 (Chapter 14 → 데모 매핑)
 
+> 🌐 [한국어](PATTERNS.md) · [English](PATTERNS.en.md) · [日本語](PATTERNS.ja.md)
+
 『Advanced API Security』 **14장 "Patterns and Practices"** 의 10가지 실무 API
-보안 솔루션 패턴을, 이 데모 프로젝트(`advancedapisecuritydemo`)의 엔드포인트로
+보안 솔루션 패턴을, 이 데모 프로젝트(`api-security-lab`)의 엔드포인트로
 재현하는 방법을 정리한 문서입니다. 각 패턴은 앞선 장들의 구현을 **조합**해서
 구성됩니다.
 

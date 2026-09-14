@@ -3,7 +3,7 @@
 > 원서: **Prabath Siriwardena, _Advanced API Security: Securing APIs with
 > OAuth 2.0, OpenID Connect, JWS, and JWE_** (Apress, 1st ed.)
 >
-> 이 문서는 `advancedapisecuritydemo` 데모 프로젝트가 기반으로 삼은 위 책의
+> 이 문서는 `api-security-lab` 데모 프로젝트가 기반으로 삼은 위 책의
 > 장별 내용을 한글로 상세 요약한 것입니다. **2~14장 전체(6·7·8·9·10·12·13·14장
 > 포함)를 책 원문을 직접 읽고 요약**했습니다. (초판 문서에서 원문 부재로
 > 보충 처리했던 7·8·9·10장은 온전한 PDF를 확보하여 원문 기반 요약으로
@@ -795,6 +795,6 @@ JSON 메시지를 **암호화**. 추가 헤더: `enc`(콘텐츠 암호화 알고
 ## 참고
 
 이 요약은 제공된 2~14장 PDF를 원문 그대로 읽고 작성했습니다(원서 목차의 1장
-서론은 제공되지 않음). 각 장 말미의 "데모 연결"은 `advancedapisecuritydemo`
+서론은 제공되지 않음). 각 장 말미의 "데모 연결"은 `api-security-lab`
 프로젝트의 구현과 이어지며, 신규로 추가된 테스트 시나리오(6·9b·12·13장 등)는
 프로젝트 README와 `VULNERABILITY-SCENARIOS.md`에서 실행 방법을 확인할 수 있습니다.
