@@ -29,6 +29,10 @@ testable group of REST endpoints.
 > that reproduces each of the book's ten "Patterns and Practices" as runnable
 > demo commands (composed from ch4/5/8/9b/11/12/13).
 
+> **Real-world use cases (Korean)**: see [USE-CASES.md](USE-CASES.md) for how
+> each mechanism/vulnerability maps to real situations ("situation -> what
+> applies -> common mistakes"), with deep-dive appendices on IDOR/BOLA and mTLS.
+
 ## Chapter -> endpoint map
 
 | Chapter | Topic | Base path |

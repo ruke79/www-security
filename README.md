@@ -33,3 +33,7 @@ README](advancedapisecuritydemo/README.md)를 참고하세요.
 
 책 14장의 10가지 API 보안 패턴을 데모 엔드포인트로 재현하는 실행 가이드(한글)는
 [PATTERNS.md](advancedapisecuritydemo/PATTERNS.md)를 참고하세요.
+
+각 메커니즘·취약점이 실무에서 어떻게 활용되는지("상황 → 적용 → 흔한 실수", IDOR·mTLS
+심화 포함) 정리한 실무 활용 가이드(한글)는
+[USE-CASES.md](advancedapisecuritydemo/USE-CASES.md)를 참고하세요.
