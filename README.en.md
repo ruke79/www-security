@@ -25,6 +25,7 @@ Topics covered:
 
 - HTTP Basic / Digest authentication
 - Mutual TLS authentication (mTLS)
+- WebAuthn / FIDO2 passkeys (phishing-resistant login)
 - OAuth 2.0 Authorization Code (PKCE) / Client Credentials flows
 - Sender-constrained tokens (DPoP, RFC 9449)
 - OAuth 2.0 profiles (token introspection/revocation, JWT Bearer grant)

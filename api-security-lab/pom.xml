@@ -36,6 +36,20 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- WebAuthn / FIDO2 passkeys (see DefaultCatchAllSecurityConfig).
+             Spring Security 6.4's built-in WebAuthn support delegates the actual
+             attestation/assertion cryptography to the webauthn4j library, which
+             is an OPTIONAL dependency it does not pull in transitively - so it
+             must be declared explicitly or the context fails to start with
+             NoClassDefFoundError: com/webauthn4j/authenticator/Authenticator.
+             0.28.x is the line Spring Security 6.4 targets (that Authenticator
+             type was removed in webauthn4j 0.29+). -->
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-core</artifactId>
+            <version>0.28.0.RELEASE</version>
+        </dependency>
+
         <!-- Chapter 7/9/10/11: OAuth 2.0 Authorization Server (Spring Authorization Server) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

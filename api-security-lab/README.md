@@ -51,6 +51,7 @@ testable group of REST endpoints.
 | 13 | JWT, JWS, JWE | `/api/ch13/**` (JWS sign/verify, JWE encrypt/decrypt) |
 | 14 | Patterns and Practices | see [BOOK-SUMMARY.md](BOOK-SUMMARY.md) (composed from ch4/8/9b/11/12/13) |
 | Lab | Web/API attack basics (deliberately vulnerable) | `/api/lab/**` - SQLi, XSS, IDOR/BOLA, Mass Assignment, SSRF, Path Traversal, Command Injection, JWT (alg:none/weak key), SSTI, NoSQL injection (see [VULNERABILITY-SCENARIOS.md](VULNERABILITY-SCENARIOS.md) #8-17) |
+| Passkeys | WebAuthn / FIDO2 - modern, phishing-resistant login (companion to ch4) | `/login`, `/webauthn/register`, `/login/webauthn` (browser demo) |
 
 Chapter 6 (OAuth 1.0) is provided as a **mechanics playground** (signature base
 string, HMAC-SHA1/PLAINTEXT signature, nonce replay guard) rather than a full
@@ -476,6 +477,53 @@ curl -s -X POST http://localhost:19080/api/lab/nosqli/login -H 'Content-Type: ap
   -d '{"username":"admin","password":{"$ne":null}}'      # auth bypass without the password
 ```
 
+## WebAuthn / Passkeys (modern, phishing-resistant login)
+
+A companion to Chapter 4 (authentication), using Spring Security 6.4's built-in
+**WebAuthn / FIDO2** support. Instead of a shared secret (password), the browser
+generates a key pair; the **private key never leaves the device** (it lives in
+the platform authenticator / Touch ID / Windows Hello / a security key) and only
+a signature over a server challenge is sent. The credential is **bound to this
+site's origin**, so a stolen credential or a look-alike phishing domain cannot
+replay it - the property passwords and OTP/SMS 2FA lack.
+
+This is a **browser demo** (the WebAuthn JavaScript API has no curl equivalent).
+Browsers only expose that API in a *secure context*, which includes
+`http://localhost`, so it works over plain HTTP here with no TLS certificate.
+
+```
+1. Start the app and open http://localhost:19080/login in a browser.
+2. Sign in once with a password (e.g. alice / alice123).
+3. Open http://localhost:19080/webauthn/register and register a passkey
+   (follow the browser/OS prompt). Registration requires you to be logged in -
+   the passkey is bound to that identity.
+4. Log out (POST /logout from the page), then on /login choose
+   "Sign in with a passkey" - you authenticate with no password at all.
+```
+
+Endpoints (all wired by Spring Security, see `config/DefaultCatchAllSecurityConfig`):
+
+| Path | Purpose |
+|---|---|
+| `GET /login` | Login page; gains a "Sign in with a passkey" button |
+| `GET /webauthn/register` | Passkey registration page (requires an authenticated session) |
+| `POST /webauthn/register/options` / `POST /webauthn/register` | Registration ceremony (start / finish) |
+| `POST /webauthn/authenticate/options` / `POST /login/webauthn` | Passkey login ceremony (start / finish) |
+
+Relying-party settings are configurable (defaults shown):
+
+```bash
+# rp id = the host only (no port/scheme); allowed origin tracks app.issuer-uri
+mvn spring-boot:run \
+  -Dspring-boot.run.arguments="--app.webauthn.rp-id=localhost --app.webauthn.rp-name=API Security Lab"
+```
+
+Demo-scope notes: registered passkeys (public keys) and user handles are held in
+in-memory maps (`MapUserCredentialRepository` /
+`MapPublicKeyCredentialUserEntityRepository`) - they reset on restart; persist
+them in production. CSRF stays enabled for these browser paths (the passkey JS
+sends the token); it is disabled only for the stateless `/api/**` JSON endpoints.
+
 ---
 
 ## Project layout
@@ -501,6 +549,7 @@ src/main/java/com/example/apisecurity/
           NoSQL injection (MongoDB, mongo profile)
   common/ Cross-chapter utilities (rate limiter)
   config/ All SecurityFilterChain / Authorization Server wiring
+          (DefaultCatchAllSecurityConfig also hosts the WebAuthn/passkey demo)
 src/main/resources/
   db/       schema-{h2,postgresql,mysql}.sql + data.sql (lab tables)
   application-postgres.yml / application-mysql.yml / application-mongo.yml

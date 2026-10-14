@@ -24,6 +24,7 @@ Authorization Server のデモプロジェクトです。各章を独立して�
 
 - HTTP Basic / Digest 認証
 - 相互 TLS 認証(mTLS)
+- WebAuthn / FIDO2 パスキー(フィッシング耐性のあるログイン)
 - OAuth 2.0 認可コード(PKCE) / クライアントクレデンシャルフロー
 - 送信者制約トークン (DPoP, RFC 9449)
 - OAuth 2.0 プロファイル (トークンの introspection/revocation、JWT Bearer グラント)

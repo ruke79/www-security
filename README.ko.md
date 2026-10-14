@@ -22,6 +22,7 @@ REST 엔드포인트 그룹으로 구현했습니다.
 
 - HTTP Basic / Digest 인증
 - 상호 TLS 인증(mTLS)
+- WebAuthn / FIDO2 패스키(피싱 저항 로그인)
 - OAuth 2.0 인가 코드(PKCE) / 클라이언트 크리덴셜 플로우
 - 발신자 제한 토큰 (DPoP, RFC 9449)
 - OAuth 2.0 프로필 (토큰 introspection/revocation, JWT Bearer 그랜트)
